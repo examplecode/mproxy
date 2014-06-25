@@ -146,7 +146,7 @@ int read_header(int fd, void * buffer)
     for(;;)
     {
         memset(line_buffer,0,2048);
-        LOG("==== prepare read line ======\n");
+
         int total_read = readLine(fd,line_buffer,2048);
         if(total_read <= 0)
         {
@@ -209,7 +209,6 @@ int extract_host(const char * header)
             remote_port = 80;
         }
         
-        // printf("host:%s port:%s\n",s_host,s_port);
         
         return 0;
     }
@@ -352,19 +351,21 @@ const char * get_work_mode()
 /* 处理客户端的连接 */
 void handle_client(int client_sock, struct sockaddr_in client_addr)
 {
-
     int is_http_tunnel = 0; 
     if(strlen(remote_host) == 0) /* 未指定远端主机名称从http 请求 HOST 字段中获取 */
     {
+        
+        #ifdef DEBUG
         LOG(" ============ handle new client ============\n");
-
+        LOG(">>>Header:%s\n",header_buffer);
+        #endif
+        
         if(read_header(client_sock,header_buffer) < 0)
         {
             LOG("Read Http header failed\n");
             return;
         } else 
         {
-            LOG(">>>Header:%s\n",header_buffer);
             char * p = strstr(header_buffer,"CONNECT"); /* 判断是否是http 隧道请求 */
             if(p) 
             {
@@ -433,7 +434,11 @@ void handle_client(int client_sock, struct sockaddr_in client_addr)
 void forward_header(int destination_sock)
 {
     rewrite_header();
-    printf("%s\n",header_buffer);
+    #ifdef DEBUG
+        LOG("================ The Forward HEAD =================");
+        LOG("%s\n",header_buffer);
+    #endif
+   
     int len = strlen(header_buffer);
     send_data(destination_sock,header_buffer,len) ;
 }
@@ -443,7 +448,6 @@ int send_data(int socket,char * buffer,int len)
 
     if(io_flag == W_S_ENC)
     {
-        LOG ("**** prepare send date resp [%d] [%d]****\n%s",len,io_flag,buffer);
         int i;
         for(i = 0; i < len ; i++)
         {
@@ -570,7 +574,7 @@ int create_connection() {
         errno = EFAULT;
         return CLIENT_RESOLVE_ERROR;
     }
-    LOG(">>>>>>>>>>host:%s port:%d\n",remote_host,remote_port);
+    LOG("======= forward request to remote host:%s port:%d ======= \n",remote_host,remote_port);
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     memcpy(&server_addr.sin_addr.s_addr, server->h_addr, server->h_length);
@@ -617,10 +621,9 @@ void sigchld_handler(int signal) {
     while (waitpid(-1, NULL, WNOHANG) > 0);
 }
 
-
 void server_loop() {
     struct sockaddr_in client_addr;
-    int addrlen = sizeof(client_addr);
+    socklen_t addrlen = sizeof(client_addr);
 
     while (1) {
         client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &addrlen);
@@ -641,8 +644,6 @@ void stop_server()
     kill(m_pid, SIGKILL);        
 }
 
-
-
 void usage(void)
 {
     printf("Usage:\n");
@@ -656,10 +657,8 @@ void usage(void)
 
 void start_server(int deamon)
 {
-    
     //初始化全局变量
     header_buffer = (char *) malloc(MAX_HEADER_SIZE);
-
 
     signal(SIGCHLD, sigchld_handler); // 防止子进程变成僵尸进程
 
