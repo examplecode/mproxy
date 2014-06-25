@@ -516,47 +516,15 @@ void forward_data(int source_sock, int destination_sock) {
     char buffer[BUF_SIZE];
     int n;
 
-    while ((n = receive_data(source_sock, buffer, BUF_SIZE)) > 0) { // read data from input socket
+    while ((n = receive_data(source_sock, buffer, BUF_SIZE)) > 0) 
+    { 
 
-        send_data(destination_sock, buffer, n); // send data to output socket
+        send_data(destination_sock, buffer, n); 
     }
 
-    shutdown(destination_sock, SHUT_RDWR); // stop other processes from using socket
-    close(destination_sock);
+    shutdown(destination_sock, SHUT_RDWR); 
 
-    shutdown(source_sock, SHUT_RDWR); // stop other processes from using socket
-    close(source_sock);
-}
-
-char * replace_str(const char *str, const char *old, const char *new)
-{
-    char *ret, *r;
-    const char *p, *q;
-    size_t oldlen = strlen(old);
-    size_t count, retlen, newlen = strlen(new);
-
-    if (oldlen != newlen) {
-        for (count = 0, p = str; (q = strstr(p, old)) != NULL; p = q + oldlen)
-            count++;
-        /* this is undefined if p - str > PTRDIFF_MAX */
-        retlen = p - str + strlen(p) + count * (newlen - oldlen);
-    } else
-        retlen = strlen(str);
-
-    if ((ret = malloc(retlen + 1)) == NULL)
-        return NULL;
-
-    for (r = ret, p = str; (q = strstr(p, old)) != NULL; p = q + oldlen) {
-        /* this is undefined if q - p > PTRDIFF_MAX */
-        int l = q - p;
-        memcpy(r, p, l);
-        r += l;
-        memcpy(r, new, newlen);
-        r += newlen;
-    }
-    strcpy(r, p);
-
-    return ret;
+    shutdown(source_sock, SHUT_RDWR); 
 }
 
 
