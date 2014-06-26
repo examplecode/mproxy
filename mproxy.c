@@ -15,7 +15,7 @@
 
 #include <string.h>
 
-#define BUF_SIZE 1024
+#define BUF_SIZE 8192
 
 #define READ  0
 #define WRITE 1
