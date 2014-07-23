@@ -639,6 +639,7 @@ void start_server(int deamon)
     if(deamon)
     {
         daemon(0,0);
+        server_loop();
 
     } else 
     {
