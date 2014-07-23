@@ -638,20 +638,7 @@ void start_server(int deamon)
    
     if(deamon)
     {
-        pid_t pid;
-        if((pid = fork()) == 0)
-        {
-            server_loop();
-        } else if (pid > 0 ) 
-        {
-            m_pid = pid;
-            LOG("mporxy pid is: [%d]\n",pid);
-            close(server_sock);
-        } else 
-        {
-            LOG("Cannot daemonize\n");
-            exit(pid);
-        }
+        daemon(0,0);
 
     } else 
     {
