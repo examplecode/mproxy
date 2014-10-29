@@ -608,7 +608,6 @@ void server_loop() {
 
 void stop_server()
 {
-    int status;
     kill(m_pid, SIGKILL);        
 }
 
@@ -617,13 +616,13 @@ void usage(void)
     printf("Usage:\n");
     printf(" -l <port number>  specifyed local listen port \n");
     printf(" -h <remote server and port> specifyed next hop server name\n");
-    printf(" -d <remote server and port> run as deamon\n");
+    printf(" -d <remote server and port> run as daemon\n");
     printf("-E encode data when forwarding data\n");
     printf ("-D decode data when receiving data\n");
     exit (8);
 }
 
-void start_server(int deamon)
+void start_server(int daemon)
 {
     //初始化全局变量
     header_buffer = (char *) malloc(MAX_HEADER_SIZE);
@@ -636,7 +635,7 @@ void start_server(int deamon)
         exit(server_sock);
     }
    
-    if(deamon)
+    if(daemon)
     {
         pid_t pid;
         if((pid = fork()) == 0)
@@ -669,75 +668,54 @@ int _main(int argc, char *argv[])
 {
     local_port = DEFAULT_LOCAL_PORT;
     io_flag = FLG_NONE;
-    int deamon = 0; 
+    int daemon = 0; 
 
     char info_buf[2048];
-
-    int i;
-    for( i = 1 ; i < argc ; i++) 
-    {
-        if(argv[i][0] == '-' ) 
-        {
-
-            if(argv[i][1] == 'h')   /* 指定远程服务器地址,及端口号 */
-            {
-                char * s = argv[++i];
-                if(s && s[0] != '-') 
-                {
-                    char * p = strchr(s,':');
-                    if(p)
-                    {
-                        strncpy(remote_host,s,p - s);
-                        remote_port = atoi(++p);
-                    } else
-                    {
-                        strncpy(remote_host,s,128);
-                    }
-
-                } 
-                else 
-                {
-                    usage();
-                }
-
-            } 
-            else if(argv[i][1] == 'l')  /* 指定当前服务监听端口号 */
-            {
-                char * s = argv[++i];
-                if(s) 
-                {
-                    local_port = atoi(s);
-                } 
-                else 
-                {
-                    usage();
-                }
-
-            } else if(argv[i][1] == 'd')
-            {
-                deamon = 1;
-            } else if(argv[i][1] == 'D')
-            {
-                io_flag = R_C_DEC;
-
-            } else if(argv[i][1] == 'E')
-            {
-                io_flag = W_S_ENC;
-            }
-            else {
-                usage();
-            }
-        } 
-        else 
-        {
-            usage();
-        }
-
+	
+	int opt;
+	char optstrs[] = ":l:h:dED";
+	char *p = NULL;
+	while(-1 != (opt = getopt(argc, argv, optstrs)))
+	{
+		switch(opt)
+		{
+			case 'l':
+				local_port = atoi(optarg);
+				break;
+			case 'h':
+				p = strchr(optarg, ':');
+				if(p)
+				{
+					strncpy(remote_host, optarg, p - optarg);
+					remote_port = atoi(p+1);
+				}
+				else
+				{
+					strncpy(remote_host, optarg, strlen(remote_host));
+				}
+				break;
+			case 'd':
+				daemon = 1;
+				break;
+			case 'E':
+				io_flag = W_S_ENC;
+				break;
+			case 'D':
+				io_flag = R_C_DEC;
+				break;
+			case ':':
+				printf("\nMissing argument after: -%c\n", optopt);
+				usage();
+			case '?':
+				printf("\nInvalid argument: %c\n", optopt);
+			default:
+				usage();
+		}
     }
 
     get_info(info_buf);
     LOG("%s\n",info_buf);
-    start_server(deamon);
+    start_server(daemon);
     return 0;
 
 }
