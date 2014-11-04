@@ -611,14 +611,19 @@ void stop_server()
     kill(m_pid, SIGKILL);        
 }
 
+void print_error(char *buffer)
+{
+    printf("%s\n",buffer);
+}
+
 void usage(void)
 {
     printf("Usage:\n");
     printf(" -l <port number>  specifyed local listen port \n");
-    printf(" -h <remote server and port> specifyed next hop server name\n");
-    printf(" -d <remote server and port> run as daemon\n");
-    printf("-E encode data when forwarding data\n");
-    printf ("-D decode data when receiving data\n");
+    printf(" -h <remote server and port (eg: 12.13.14.15:9090)> specifyed next hop server name\n");
+    printf(" -d run as daemon\n");
+    printf(" -E encode data when forwarding data\n");
+    printf(" -D decode data when receiving data\n");
     exit (8);
 }
 
@@ -671,16 +676,25 @@ int _main(int argc, char *argv[])
     int daemon = 0; 
 
     char info_buf[2048];
+    char error_buf[128];
+    int argument_error = 0;
 	
 	int opt;
 	char optstrs[] = ":l:h:dED";
 	char *p = NULL;
 	while(-1 != (opt = getopt(argc, argv, optstrs)))
 	{
+        memset(error_buf, 0, sizeof(error_buf));
 		switch(opt)
 		{
 			case 'l':
 				local_port = atoi(optarg);
+                if(local_port == 0)
+                {
+                    snprintf(error_buf, sizeof(error_buf), "\nArgument ERROR: -l %s\n",optarg);
+                    print_error(error_buf);
+                    argument_error = 1;
+                }
 				break;
 			case 'h':
 				p = strchr(optarg, ':');
@@ -688,6 +702,12 @@ int _main(int argc, char *argv[])
 				{
 					strncpy(remote_host, optarg, p - optarg);
 					remote_port = atoi(p+1);
+                    if (remote_port == 0)
+                    {
+                        snprintf(error_buf, sizeof(error_buf), "\nArgument ERROR: -h %s\n",optarg);
+                        print_error(error_buf);
+                        argument_error = 1;
+                    }
 				}
 				else
 				{
@@ -704,15 +724,27 @@ int _main(int argc, char *argv[])
 				io_flag = R_C_DEC;
 				break;
 			case ':':
-				printf("\nMissing argument after: -%c\n", optopt);
-				usage();
+                snprintf(error_buf, sizeof(error_buf), "\nMissing argument after: -%c\n", optopt);
+                print_error(error_buf);
+                argument_error = 1;
+                break;
 			case '?':
-				printf("\nInvalid argument: %c\n", optopt);
+                snprintf(error_buf, sizeof(error_buf), "\nInvalid argument: -%c\n", optopt);
+                print_error(error_buf);
+                argument_error = 1;
+                break;
 			default:
-				usage();
+                snprintf(error_buf, sizeof(error_buf), "\nUnknown argument: -%c\n", optopt);
+                print_error(error_buf);
+                argument_error = 1;
+                break;
 		}
     }
 
+    if (argument_error)
+    {
+        usage();
+    }
     get_info(info_buf);
     LOG("%s\n",info_buf);
     start_server(daemon);
