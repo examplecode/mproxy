@@ -21,7 +21,7 @@ import re
 import ssl
 
 
-remote_addr = "23.89.181.214"
+remote_addr = ""
 remote_port = 8001
 local_port = 8003
 ENC = 0
@@ -191,8 +191,8 @@ def run_server(listen_fd):
 			
 if __name__ == "__main__":
 	
-	if len(sys.argv) != 2:
-		print "Usage: %s port" % sys.argv[0]
+	if len(sys.argv) != 3:
+		print "Usage: %s ip port" % sys.argv[0]
 		sys.exit(-1)
 
 	try:
@@ -200,7 +200,8 @@ if __name__ == "__main__":
 	except socket.error, msg:
 		print("create socket failed")
 	
-	local_port = int(sys.argv[1])
+	remote_addr = sys.argv[1]
+	local_port = int(sys.argv[2])
 	try:
 		listen_fd.bind(('192.168.1.103', local_port))
 	except socket.error, msg:
