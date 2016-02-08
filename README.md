@@ -73,7 +73,7 @@ mproxy可以运行在unix-like 的操作系统下面，程序很小没有第三�
 #### step3 : 配置浏览器http代理使用mporxy本地代理
 
 设置你的浏览器http代理指向你的本地代理，使用chrome浏览器的同学强烈推荐使用
-[switchSharp](https://code.google.com/p/switchysharp/)，安装完毕swichSharp以后只需要为switchSharp增加一个情景模式就好，如下图：
+[switchSharp](https://github.com/feliscatus/switchyomega)，安装完毕swichSharp以后只需要为switchSharp增加一个情景模式就好，如下图：
 
 ![设置switchSharp](./switchSharp_config.png) 
 
