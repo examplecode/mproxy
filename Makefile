@@ -6,7 +6,7 @@ all: mproxy
 mproxy: mproxy.o
 	$(CC) $(CFLAGS) mproxy.o -o mproxy
 
-mproxy.o:
+mproxy.o: mproxy.c
 	$(CC) $(CFLAGS) -c mproxy.c
 
 clean:
