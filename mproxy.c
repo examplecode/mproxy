@@ -79,6 +79,7 @@ void handle_client(int client_sock, struct sockaddr_in client_addr);
 void forward_header(int destination_sock);
 void forward_data(int source_sock, int destination_sock);
 void rewrite_header();
+void rewrite_uri();
 int send_data(int socket,char * buffer,int len );
 int receive_data(int socket, char * buffer, int len);
 void hand_mproxy_info_req(int sock,char * header_buffer) ;
@@ -388,7 +389,6 @@ void handle_client(int client_sock, struct sockaddr_in client_addr)
                 return;
             }
             LOG("Host:%s port: %d io_flag:%d\n",remote_host,remote_port,io_flag);
-
         }
     }
 
@@ -433,7 +433,8 @@ void handle_client(int client_sock, struct sockaddr_in client_addr)
 
 void forward_header(int destination_sock)
 {
-    rewrite_header();
+    //rewrite_header();
+    rewrite_uri();
     #ifdef DEBUG
         LOG("================ The Forward HEAD =================");
         LOG("%s\n",header_buffer);
@@ -507,6 +508,23 @@ void rewrite_header()
     }
 }
 
+/* 重写为完整url */
+void rewrite_uri() {
+	char * p = strstr(header_buffer,"http://");
+	// 首行无Host
+	if(!p || strchr(header_buffer,'\n') < p)
+    {
+    	char *pu = strchr(header_buffer,' ')+1;
+    	if(strncmp(header_buffer,"CONNECT",7)!=0)
+    	{
+    		char *ct=(char*)malloc(strlen(pu)+1);
+    		strcpy(ct,pu);
+    		sprintf(pu,"http://%s%s",remote_host,ct);
+    		free(ct);
+    	}
+    	
+    }
+}
 
 void forward_data(int source_sock, int destination_sock) {
     char buffer[BUF_SIZE];
