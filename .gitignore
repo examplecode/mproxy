@@ -1,1 +1,11 @@
 *.log
+# VIM temperary file
+*.swp
+*.[ao]
+# cscope's index file: cscope.out, cscope.in.out, cscope.po.out ($ cscope -Rbq)
+*.out
+# ctags's index file: tags  ($ ctags -R)
+tags
+# log of the git commit, it's myself.
+/comment
+/mproxy
